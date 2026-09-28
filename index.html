@@ -3,109 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BloxVR - Hand Tracking</title>
-  
-  <!-- A-Frame VR Framework -->
+  <title>BloxVR - Teste</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  
-  <!-- MediaPipe Hands & Camera Utils -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
-<body style="margin: 0; overflow: hidden; background-color: #000;">
-
-  <!-- Elemento de Vídeo com Permissão explícita -->
-  <video id="webcam" style="display: none;" playsinline webkit-playsinline muted autoplay></video>
-
-  <!-- Cena A-Frame VR -->
-  <a-scene embedded vr-mode-ui="enabled: true">
-    
-    <a-entity light="type: ambient; color: #BBB"></a-entity>
-    <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="-0.5 1 1"></a-entity>
-
-    <a-sky color="#87CEEB"></a-sky>
-    <a-plane position="0 0 -4" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
-
-    <!-- Cubo para interagir -->
-    <a-box id="target-box" position="0 1.5 -2" rotation="0 45 0" color="#4CC3D9"></a-box>
-
-    <!-- Cursor da mão (Esfera Amarela) -->
-    <a-sphere id="hand-cursor" radius="0.08" color="#FFC107" position="0 1.5 -1"></a-sphere>
-
-    <a-entity id="rig" position="0 0 0">
-      <a-camera position="0 1.6 0" look-controls></a-camera>
-    </a-entity>
-
+<body style="margin: 0; overflow: hidden;">
+  <a-scene vr-mode-ui="enabled: true">
+    <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+    <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
+    <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
+    <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+    <a-sky color="#ECECEC"></a-sky>
   </a-scene>
-
-  <script>
-    const videoElement = document.getElementById('webcam');
-    const handCursor = document.getElementById('hand-cursor');
-    const targetBox = document.getElementById('target-box');
-
-    let isPinching = false;
-
-    const hands = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-    });
-
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-
-    hands.onResults(onResults);
-
-    // Inicialização direta do Stream de Vídeo
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-      .then((stream) => {
-        videoElement.srcObject = stream;
-        videoElement.play();
-
-        const camera = new Camera(videoElement, {
-          onFrame: async () => {
-            await hands.send({ image: videoElement });
-          },
-          width: 640,
-          height: 480
-        });
-        camera.start();
-      })
-      .catch((err) => {
-        console.error("Erro ao acessar a câmera: ", err);
-      });
-
-    function onResults(results) {
-      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        const landmarks = results.multiHandLandmarks[0];
-
-        const indexTip = landmarks[8];
-        const thumbTip = landmarks[4];
-
-        const x = (0.5 - indexTip.x) * 3;
-        const y = (0.5 - indexTip.y) * 3 + 1.2;
-        const z = -1.5;
-
-        handCursor.setAttribute('position', `${x} ${y} ${z}`);
-
-        const distance = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
-
-        if (distance < 0.08) {
-          if (!isPinching) {
-            isPinching = true;
-            handCursor.setAttribute('color', '#FF5722');
-          }
-          targetBox.setAttribute('position', `${x} ${y} ${z}`);
-        } else {
-          if (isPinching) {
-            isPinching = false;
-            handCursor.setAttribute('color', '#FFC107');
-          }
-        }
-      }
-    }
-  </script>
 </body>
 </html>
